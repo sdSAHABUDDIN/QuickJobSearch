@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 import User from "../models/user.model.js";
 import bcrypt from "bcryptjs";
-
+import { sendWelcomeEmail } from "../Email/EmailHandler.js"; // Adjust the import path as necessary
 export const signup = async (req, res) => {
   console.log("Received body:", req.body);
   console.log("Raw keys:", Object.keys(req.body));
@@ -58,7 +58,14 @@ export const signup = async (req, res) => {
       maxAge: 24 * 60 * 60 * 1000,
     });
 
-    res.status(201).json({ message: "User created successfully", user, token });
+    res.status(201).json({ message: "User registered successfully", user, token });
+    //send email welcome email
+    const profileUrl = `${process.env.CLIENT_URL}/profile/${user._id}`;
+    try {
+      await sendWelcomeEmail(user.email, user.name,profileUrl);
+    } catch (error) {
+      console.log("Error sending email:", error);
+    }
   } catch (error) {
     console.error("Error during signup:", error);
     res.status(500).json({ message: "Internal server error" });
