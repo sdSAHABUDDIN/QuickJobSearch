@@ -76,5 +76,11 @@ export const login = async (req, res) => {
   res.status(200).json({ message: "User logged in successfully!" });
 };
 export const logout = async (req, res) => {
+  res.clearCookie("access_token", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+  });
+  // Optionally, you can also invalidate the JWT on the server side if you're using a token-based authentication system.
   res.status(200).json({ message: "User logged out successfully!" });
 };
