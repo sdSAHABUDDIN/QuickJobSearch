@@ -114,3 +114,16 @@ export const logout = async (req, res) => {
   // Optionally, you can also invalidate the JWT on the server side if you're using a token-based authentication system.
   res.status(200).json({ message: "User logged out successfully!" });
 };
+
+export const getCurrentUser = async (req, res) => {
+  try {
+    const user = req.user; // The user is set in the middleware
+    if (!user) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    res.status(200).json(user);
+  } catch (error) {
+    console.error("Error getting current user:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}
