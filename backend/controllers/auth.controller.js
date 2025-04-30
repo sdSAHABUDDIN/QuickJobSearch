@@ -73,7 +73,37 @@ export const signup = async (req, res) => {
 };
 
 export const login = async (req, res) => {
-  res.status(200).json({ message: "User logged in successfully!" });
+  try {
+    const { username, password } = req.body;
+    if (!username || !password) {
+      return res.status(400).json({ message: "All fields are required!" });
+    }
+    // Check if the user exists
+    const user = await User.findOne({ username });
+    if (!user) {
+      return res.status(400).json({ message: "Invalid username or password!" });
+    } 
+    // Check if the password is correct
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Invalid username or password!" });
+    }
+    // Generate a JWT token
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "1h",
+    });
+    // Set the token in a cookie
+    res.cookie("access_token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 24 * 60 * 60 * 1000,
+    });
+    // Send the user data and token in the response
+    res.status(200).json({ message: "User logged in successfully", user, token });
+  } catch (error) {
+    console.error("Error during login:", error);
+  }
 };
 export const logout = async (req, res) => {
   res.clearCookie("access_token", {
